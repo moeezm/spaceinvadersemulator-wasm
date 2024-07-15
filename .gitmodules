@@ -1,0 +1,3 @@
+[submodule "spaceinvadersemulator"]
+	path = spaceinvadersemulator
+	url = git@github.com:moeezm/spaceinvadersemulator.git
