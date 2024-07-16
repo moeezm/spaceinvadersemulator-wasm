@@ -24,6 +24,11 @@ var pixelData = imageData.data;
 
 var cpu;
 var mach;
+
+var frameCount = 0;
+var sumOfTimes = 0;
+var maxTime = 0;
+const FPS_CHECK_INTERVAL = 1000; // ms
 var Module = {
 	onRuntimeInitialized: async function() {
 		console.log("initeed!");
@@ -139,6 +144,7 @@ async function loadFile(fileName, offset) {
 
 var cycles = 0;
 var lastTime = 0;
+var lastFpsCheckTime = 0;
 
 const CYCLES_PER_FRAME = (CLOCK_SPEED / 60) | 0;
 const CYCLES_PER_MS = (CLOCK_SPEED / 1000) | 0;
@@ -146,7 +152,19 @@ const MS_PER_FRAME = (1000 / 60) | 0;
 function gameLoop(timestamp) {
 	let deltaTime = timestamp - lastTime;
 	lastTime = timestamp;
+	sumOfTimes += deltaTime;
+	frameCount++;
+	maxTime = Math.max(maxTime, deltaTime);
 
+	if (timestamp - lastFpsCheckTime > FPS_CHECK_INTERVAL ) {
+		console.log(`Average FPS over last ${FPS_CHECK_INTERVAL/1000} seconds: ${1000 / (sumOfTimes / frameCount)}`);
+		console.log(`Max time between consecutive frames: ${maxTime}`);
+		sumOfTimes = 0;
+		maxTime = 0;
+		frameCount = 0;
+		lastFpsCheckTime = timestamp;
+	}
+  
 	if (deltaTime > MS_PER_FRAME) {
 		// draw left half
 		Module._copyVRAM(cpu, vramBufferPtr);
