@@ -1,15 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>test</title>
+    <meta charset="utf-8">
+    <title>test</title>
+    <style>
+        #container {
+            display: flex;
+            /* align-items: center; */
+        }
+        #game {
+            border: 1px solid black; /* Optional: for better visibility */
+        }
+        .text-div {
+            margin-left: 20px;
+            font-size: 24px; /* Adjust the size as needed */
+        }
+    </style>
 </head>
 <body>
-	<h1>Space Invaders</h1>
-	<canvas id="game">
-	</canvas>
-	<script src="main.js"></script>
-	<script src="emu.js"></script>
+    <h1>Space Invaders Emulator</h1>
+    <div id="container">
+        <canvas id="game" width="300" height="300"></canvas>
+        <div class="text-div">
+			<h3>Controls:</h3>
+			<p>Left Shift - Insert Coin</p>
+			<p>1 - Start Player 1</p>
+			<p>2 - Start Player 2</p>
+			<p>W, A, D - Player 1 Fire, Left, Right</p>
+			<p>Arrows Up, Left, Right - Player 2 Fire, Left, Right</p>
+		</div>
+    </div>
+    <script src="main.js"></script>
+    <script src="emu.js"></script>
 </body>
 </html>
 
