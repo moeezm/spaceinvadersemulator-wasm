@@ -29,6 +29,7 @@ var frameCount = 0;
 var sumOfTimes = 0;
 var maxTime = 0;
 const FPS_CHECK_INTERVAL = 3000; // ms
+
 var Module = {
 	onRuntimeInitialized: async function() {
 		console.log("initeed!");
@@ -112,7 +113,8 @@ var Module = {
 
 		console.log(pixelData.length);
 		console.log(canvas.height * canvas.width * 4);
-		requestAnimationFrame(gameLoop);
+
+		document.getElementById("frame-button").hidden = false;
 		/*
 		for (let i = 0; i < canvas.height; i++) {
 			for (let j = 0; j < 96; j++) {
@@ -142,6 +144,25 @@ async function loadFile(fileName, offset) {
 	Module._free(ptr);
 }
 
+var deltaTime = 1000 / 60; 
+var monitorRate = true;
+function startEmulation() {
+	const selectedOption = document.querySelector('input[name="frame-type-selector"]:checked').value;
+	if (selectedOption == "forced") {
+		monitorRate = false;
+	}
+	console.log(monitorRate);
+	
+	if (monitorRate) {
+		requestAnimationFrame(gameLoop);
+	}
+	else {
+		setInterval(() => {
+			gameLoop(0);
+		}, deltaTime);
+	}
+}
+
 var cycles = 0;
 var lastTime = 0;
 var lastFpsCheckTime = 0;
@@ -149,9 +170,14 @@ var lastFpsCheckTime = 0;
 const CYCLES_PER_FRAME = (CLOCK_SPEED / 60) | 0;
 const CYCLES_PER_MS = (CLOCK_SPEED / 1000) | 0;
 const MS_PER_FRAME = (1000 / 60) | 0;
+
 function gameLoop(timestamp) {
-	let deltaTime = timestamp - lastTime;
-	lastTime = timestamp;
+	if (monitorRate) {
+		deltaTime = timestamp - lastTime;
+		lastTime = timestamp;
+	}
+
+	/*
 	sumOfTimes += deltaTime;
 	frameCount++;
 	maxTime = Math.max(maxTime, deltaTime);
@@ -164,6 +190,8 @@ function gameLoop(timestamp) {
 		frameCount = 0;
 		lastFpsCheckTime = timestamp;
 	}
+	*/
+	
   
 	// draw left half
 	Module._copyVRAM(cpu, vramBufferPtr);
@@ -192,43 +220,14 @@ function gameLoop(timestamp) {
 		}
 	}
 	ctx.putImageData(imageData, 0, 0);
-	Module._VBlankHalfInterrupt(cpu);
-	for (let i = 0; i < 1000; i++) Module._nextOp8080(cpu, mach);
-	Module._VBlankFullInterrupt(cpu);
 	let target = deltaTime * CYCLES_PER_MS;
+	//Module._VBlankHalfInterrupt(cpu);
+	Module._emulateOp8080(cpu, mach, 0xCF, 0, 0);
+	while (cycles < target/2) cycles += Module._nextOp8080(cpu, mach);
+	//Module._VBlankFullInterrupt(cpu);
+	Module._emulateOp8080(cpu, mach, 0xD7, 0, 0);
 	while (cycles < target) cycles += Module._nextOp8080(cpu, mach);
 	cycles = 0;
 
-	/*
-	// draw right half
-	Module._copyVRAM(cpu, vramBufferPtr);
-	imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	for (let i = 96; i < SCREEN_WIDTH; i++) {
-		for (let j = 0; j < SCREEN_HEIGHT; j++) {
-			//if (vramBufferArr[i][(j/8)|0]>>(j%8) & 1) {
-			if ((vramBufferArr[i*((SCREEN_HEIGHT/8)|0) + ((j/8)|0)]>>(j%8)) & 1) {
-				pixelR = pixelG = pixelB = 0xFF;
-			}
-			else {
-				pixelR = pixelG = pixelB = 0;
-			}
-			for (let k = 0; k < PIXEL_SIZE_Y; k++) {
-				for (let l = 0; l < PIXEL_SIZE_X; l++) {
-					let idx = ((PIXEL_SIZE_Y*(SCREEN_HEIGHT - 1 - j) + k) * WINDOW_WIDTH + (PIXEL_SIZE_X*i + l)) * 4;
-					pixelData[idx] = pixelR;
-					pixelData[idx+1] = pixelG;
-					pixelData[idx+2] = pixelB;
-					pixelData[idx+3] = pixelA;
-				}
-			}
-		}
-	}
-	ctx.putImageData(imageData, 0, 0);
-	Module._VBlankFullInterrupt(cpu);
-	while (cycles < CYCLES_PER_FRAME) {
-		cycles += Module._nextOp8080(cpu, mach);
-	}
-	cycles = 0;
-	*/
-	requestAnimationFrame(gameLoop);
+	if (monitorRate) requestAnimationFrame(gameLoop);
 }

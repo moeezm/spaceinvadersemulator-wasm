@@ -15,6 +15,9 @@
             margin-left: 20px;
             font-size: 24px; /* Adjust the size as needed */
         }
+		button {
+			font-size: 24px;
+		}
     </style>
 </head>
 <body>
@@ -28,6 +31,15 @@
 			<p>2 - Start Player 2</p>
 			<p>W, A, D - Player 1 Fire, Left, Right</p>
 			<p>Arrows Up, Left, Right - Player 2 Fire, Left, Right</p>
+			<form id="frame-style">
+				<input type="radio" id="monitor" name="frame-type-selector" value="monitor" checked>
+				<label for="monitor">Use monitor refresh rate (will probably run too fast if &gt; 60Hz)</label>
+				<br>
+				<input type="radio" id="forced" name="frame-type-selector" value="forced">
+				<label for="forced">Force 60FPS (might not be smooth if monitor refresh rate isn't 60Hz? Not sure tbh)</label>
+				<br>
+				<button id="frame-button" type="button" onclick="startEmulation()" hidden>Start</button>
+			</form>
 		</div>
     </div>
     <script src="main.js"></script>
