@@ -28,7 +28,7 @@ var mach;
 var frameCount = 0;
 var sumOfTimes = 0;
 var maxTime = 0;
-const FPS_CHECK_INTERVAL = 1000; // ms
+const FPS_CHECK_INTERVAL = 3000; // ms
 var Module = {
 	onRuntimeInitialized: async function() {
 		console.log("initeed!");
@@ -165,41 +165,39 @@ function gameLoop(timestamp) {
 		lastFpsCheckTime = timestamp;
 	}
   
-	if (deltaTime > MS_PER_FRAME) {
-		// draw left half
-		Module._copyVRAM(cpu, vramBufferPtr);
-		let pixel;
-		let pixelA = 0xFF; 
+	// draw left half
+	Module._copyVRAM(cpu, vramBufferPtr);
+	let pixel;
+	let pixelA = 0xFF; 
 
-		
-		for (let i = 0; i < SCREEN_WIDTH; i++) {
-			for (let j = 0; j < SCREEN_HEIGHT; j++) {
-				//if (vramBufferArr[i][(j/8)|0]>>(j%8) & 1) {
-				if ((vramBufferArr[i*((SCREEN_HEIGHT/8)|0) + ((j/8)|0)]>>(j%8)) & 1) {
-					pixelR = pixelG = pixelB = 0xFF;
-				}
-				else {
-					pixelR = pixelG = pixelB = 0;
-				}
-				for (let k = 0; k < PIXEL_SIZE_Y; k++) {
-					for (let l = 0; l < PIXEL_SIZE_X; l++) {
-						let idx = ((PIXEL_SIZE_Y*(SCREEN_HEIGHT - 1 - j) + k) * WINDOW_WIDTH + (PIXEL_SIZE_X*i + l)) * 4;
-						pixelData[idx] = pixelR;
-						pixelData[idx+1] = pixelG;
-						pixelData[idx+2] = pixelB;
-						pixelData[idx+3] = pixelA;
-					}
+	
+	for (let i = 0; i < SCREEN_WIDTH; i++) {
+		for (let j = 0; j < SCREEN_HEIGHT; j++) {
+			//if (vramBufferArr[i][(j/8)|0]>>(j%8) & 1) {
+			if ((vramBufferArr[i*((SCREEN_HEIGHT/8)|0) + ((j/8)|0)]>>(j%8)) & 1) {
+				pixelR = pixelG = pixelB = 0xFF;
+			}
+			else {
+				pixelR = pixelG = pixelB = 0;
+			}
+			for (let k = 0; k < PIXEL_SIZE_Y; k++) {
+				for (let l = 0; l < PIXEL_SIZE_X; l++) {
+					let idx = ((PIXEL_SIZE_Y*(SCREEN_HEIGHT - 1 - j) + k) * WINDOW_WIDTH + (PIXEL_SIZE_X*i + l)) * 4;
+					pixelData[idx] = pixelR;
+					pixelData[idx+1] = pixelG;
+					pixelData[idx+2] = pixelB;
+					pixelData[idx+3] = pixelA;
 				}
 			}
 		}
-		ctx.putImageData(imageData, 0, 0);
-		Module._VBlankHalfInterrupt(cpu);
-		for (let i = 0; i < 1000; i++) Module._nextOp8080(cpu, mach);
-		Module._VBlankFullInterrupt(cpu);
-		let target = deltaTime * CYCLES_PER_MS;
-		while (cycles < target) cycles += Module._nextOp8080(cpu, mach);
-		cycles = 0;
 	}
+	ctx.putImageData(imageData, 0, 0);
+	Module._VBlankHalfInterrupt(cpu);
+	for (let i = 0; i < 1000; i++) Module._nextOp8080(cpu, mach);
+	Module._VBlankFullInterrupt(cpu);
+	let target = deltaTime * CYCLES_PER_MS;
+	while (cycles < target) cycles += Module._nextOp8080(cpu, mach);
+	cycles = 0;
 
 	/*
 	// draw right half
